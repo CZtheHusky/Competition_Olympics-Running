@@ -1,3 +1,7 @@
+To see the trained huskies please visit 
+https://www.bilibili.com/video/BV1TY4y1x7u1
+https://www.bilibili.com/video/BV1rF411G72L
+
 ### Update 21.Jan.2022
 Adding map11 to the pool
 <p align="center"> 
