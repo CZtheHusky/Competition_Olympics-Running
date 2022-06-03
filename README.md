@@ -1,4 +1,4 @@
-## AI3614 GTMAL Final Project
+## AI3617 GTMAL Final Project
 
 ### Have a look at the skilled huskies!
 
