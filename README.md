@@ -1,4 +1,4 @@
-To see how the trained huskies runs, please visit 
+To see how the trained husky runs, please visit 
 
 https://www.bilibili.com/video/BV1TY4y1x7u1
 
