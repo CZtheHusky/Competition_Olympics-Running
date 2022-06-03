@@ -25,3 +25,8 @@ Don't forget to prepare 17 opponents in './self_play_opponents' first. Feel free
 > cd rl_trainer_rnn_mt
 > 
 > python self_play.py --actor_path '' --critic_path '' --reward_shaping
+
+### Want to enjoy the races on your computer?
+> cd evaluation
+
+> python eval.py
