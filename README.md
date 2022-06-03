@@ -1,152 +1,18 @@
-To see the trained huskies please visit 
+To see how the trained huskies runs, please visit 
 
 https://www.bilibili.com/video/BV1TY4y1x7u1
 
 https://www.bilibili.com/video/BV1rF411G72L
 
-### Update 21.Jan.2022
-Adding map11 to the pool
-<p align="center"> 
-<img src=https://github.com/jidiai/Competition_Olympics-Running/blob/main/assets/map11.png width=200>
-</p>
 
+### How to train your own husky
+Under current multithread settings, you need one GPU with 80GB of memory or two GPUs with 40GB of memory.
+> cd 
+> python main.py --mix_maps --reward_shaping
 
+### Resume training from a check point
+> python main.py --mix_maps --reward_shaping --check_point --actor_path '' --critic_path '' --ep ep_num --tc train_count
 
-### Update 06.Jan.2022 (*Happy New Year!*)
-Adding 1 new map to the pool (map10)
-<p align="center"> 
-<img src=https://github.com/jidiai/Competition_Olympics-Running/blob/main/assets/map10.png width=200>
-</p>
-
-### Update 22.Dec, 2021
-specify loaded path.
-
-Make sure you add you current location (~/Competition_Olympics-Running) to PYTHONPATH variable.
-
-**Windows**: `set PYTHONPATH=%PYTHONPATH%;xxx`
-
-**Linux/macOS**: `export PYTHONPATH=$PYTHONPATH:xxx`
-
-where `xxx` is your current path (~/Competition_Olympics-Running)
-
-
-### Update 21.Dec.
-Adding 1 new map to the pool (map9)
-
-<p align="center"> 
-<img src=https://github.com/jidiai/Competition_Olympics-Running/blob/main/assets/map9.png width=200>
-</p>
-  
-### Update 14.Dec.
-Adding numerical error threshold.
-
-### Update 07.Dec.
-Adding 2 new maps to the pool (map7&8);
-<p align="center"> 
-  <img src=https://github.com/jidiai/Competition_Olympics-Running/blob/main/assets/map7.png width=200> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  <img src=https://github.com/jidiai/Competition_Olympics-Running/blob/main/assets/map8.png width=200>
-</p>
-
-### Update 24.Nov.
-fix the penetration bugs between two arcs, avoid numerical error when colliding with points...
-
-### Update 23.Nov.
-Adding 2 new maps to the pool (map5&6).
-
-<p align="center"> 
-  <img src=https://github.com/jidiai/Competition_Olympics-Running/blob/main/assets/map5.png width=200> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  <img src=https://github.com/jidiai/Competition_Olympics-Running/blob/main/assets/map6.png width=200>
-</p>
-
-
-
----
-# Competition_1v1running
-
-## Environment
-
-<img src=https://github.com/jidiai/Competition_Olympics-Running/blob/main/assets/olympics%20running.gif width=600>
-
-check details in Jidi Competition [RLChina2021智能体竞赛](http://www.jidiai.cn/compete_detail?compete=12)
-
-
-### “奥林匹克 跑步运动”:
-
-<b>标签：</b>不完全观测；连续动作空间；连续状态空间
-
-<b>环境简介：</b>智能体参加奥林匹克运动会。在这个系列的竞赛中，
-两个智能体参加跑步竞赛，目标是尽快到达终点。
-
-<b>环境规则:</b> 
-1. 在一个随机地图中，对战双方各控制一个有相同质量和半径的弹性小球智能体；
-2. 智能体可以互相碰撞，也可以碰撞墙壁，但会损失一定的速度；
-3. 智能体自身有能量，每步消耗的能量与施加的驱动力和位移成正比；
-4. 智能体能量以固定速率恢复，如果能量衰减到零，则不能加力；
-5. 智能体的观测为自身朝向前方25*25的矩形区域，观测值包括墙壁、终点线、对手和跑道方向辅助箭头；
-6. 初始时智能体位于所在地图的起跑线位置，初始朝向与跑道方向平行；
-7. 当有一个智能体到达终点（红线）或环境达到最大步数500步时环境结束，先冲过终点的一方获胜，若双方均未过线则平局；
-8. 智能体需要具有一定的泛化性以适应不同的地图，评测时会从所有地图（每次热身赛和正赛评测时可能加入新地图）中随机选择一个作为评测地图。
-
-<b>动作空间：</b>连续；两维。分别代表施加力量和转向角度。
-
-<b>观测：</b>每一步环境返回一个25x25的二维矩阵，详情请见*/olympics*文件夹
-
-<b>奖励函数:</b> 如果没到达终点，不得分；如果到达终点，获得100分。
-
-<b>环境终止条件:</b> 有一个智能体到达终点，则环境结束；或者，环境达到最大步数500步。
-
-<b>评测说明：</b>该环境属于零和游戏，在金榜的积分按照ELO进行匹配算法进行计算并排名。零和游戏在匹配对手或队友时，按照瑞士轮进行匹配。
-平台验证和评测时，在单核CPU上运行用户代码（暂不支持GPU），限制用户每一步返回动作的时间不超过1s，内存不超过500M。
-
-<b>报名方式：</b>访问“及第”平台（ www.jidiai.cn ），在“擂台”页面选择“RLChina 智能体挑战赛 - 辛丑年冬赛季”即可报名参赛。RLCN 微信公众号后台回复“智能体竞赛”，可进入竞赛讨论群。
-
-This is a POMDP simulated environment of 2D sports games where althletes are spheres and have continuous action space (torque and steering). The observation is a 25*25 array of agent's limited view range. We introduce collision and agent's fatigue such that no torque applies when running out of energy.
-
-This is for now a beta version and we intend to add more sports scenario, stay tuned :)
-
----
-## Dependency
-
->conda create -n olympics python=3.8.5
-
->conda activate olympics
-
->pip install -r requirements.txt
-
----
-
-## Run a game
-
->python olympics/main.py
-
----
-
-## Train a baseline agent 
-
->python rl_trainer/main.py
-
-By default parameters, the total reward of training is shown below.
-
-<img src=https://github.com/jidiai/Competition_Olympics-Running/blob/main/assets/PPO%20map1%20training%20(run1).png>
-
-You can also locally evaluate your trained model by executing:
-
->python evaluation_local.py --my_ai rl --opponent random --episode=50 --map=all
-
-or specifying the map number (--map=1).
-
-<img src="https://github.com/jidiai/Competition_Olympics-Running/blob/main/assets/evaluation_local_results.png">
-
-
-## How to test submission
-
-You can locally test your submission. At Jidi platform, we evaluate your submission as same as *run_log.py*
-
-For example,
-
->python run_log.py --my_ai "rl" --opponent "random"
-
-in which you are controlling agent 1 which is green.
-
-## Ready to submit
-
-1. Random policy --> *agents/random/submission.py*
-2. RL policy --> *all files in agents/rl*
+### Already got a husky? Time to self play!
+Don't forget to prepare 17 opponents in './self_play_opponents' first. Feel free to choose them from your stored huskies.
+> python self_play.py --actor_path '' --critic_path '' --reward_shaping
