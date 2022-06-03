@@ -112,7 +112,7 @@ def sample(model, env, opponent_agent, RENDER, num_eps=5, train=True, act_mask=F
 
 
 def main(args):
-    torch.set_num_threads(1)
+#     torch.set_num_threads(1)
     device = 'cpu'
     RENDER = True
     setup_seed(int(time.time()))
