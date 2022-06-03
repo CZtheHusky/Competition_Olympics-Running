@@ -11,13 +11,15 @@ import matplotlib.pyplot as pyplot
 import sys
 
 from pathlib import Path
+
 CURRENT_PATH = str(Path(__file__).resolve().parent)
 sys.path.append(CURRENT_PATH)
 
 from olympics.viewer import Viewer, debug
-#from olympics.utils import *
 
-#from generator import create_scenario
+# from olympics.utils import *
+
+# from generator import create_scenario
 
 
 # color 宏
@@ -26,12 +28,12 @@ COLORS = {
     'green': [0, 255, 0],
     'blue': [0, 0, 255],
     'yellow': [255, 255, 0],
-    'grey':  [176,196,222],
+    'grey': [176, 196, 222],
     'purple': [160, 32, 240],
     'black': [0, 0, 0],
     'white': [255, 255, 255],
     'light green': [204, 255, 229],
-    'sky blue': [0,191,255]
+    'sky blue': [0, 191, 255]
 }
 
 COLOR_TO_IDX = {
@@ -64,39 +66,43 @@ def point2line(l1, l2, point):
     :return:
     """
 
-    l1l2 = [l2[0] - l1[0], l2[1]-l1[1]]
-    l1c = [point[0]-l1[0], point[1]-l1[1]]
+    l1l2 = [l2[0] - l1[0], l2[1] - l1[1]]
+    l1c = [point[0] - l1[0], point[1] - l1[1]]
 
-    cross_prod = abs(l1c[0]*l1l2[1] - l1c[1]*l1l2[0])
+    cross_prod = abs(l1c[0] * l1l2[1] - l1c[1] * l1l2[0])
 
-    l1l2_length = math.sqrt(l1l2[0]**2 + l1l2[1]**2)
-    return cross_prod/l1l2_length
+    l1l2_length = math.sqrt(l1l2[0] ** 2 + l1l2[1] ** 2)
+    return cross_prod / l1l2_length
+
 
 def cross_prod(v1, v2):
-    return v1[0]*v2[1] - v1[1]*v2[0]
+    return v1[0] * v2[1] - v1[1] * v2[0]
 
-def line_intersect(line1, line2):       #[[x1,y1], [x2,y2]], https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+
+def line_intersect(line1,
+                   line2):  # [[x1,y1], [x2,y2]], https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
 
     p = line1[0]
-    r = [line1[1][0] - line1[0][0] , line1[1][1] - line1[0][1]]
+    r = [line1[1][0] - line1[0][0], line1[1][1] - line1[0][1]]
 
     q = line2[0]
-    s = [line2[1][0] - line2[0][0] , line2[1][1] - line2[0][1]]
+    s = [line2[1][0] - line2[0][0], line2[1][1] - line2[0][1]]
 
-    rs = cross_prod(r,s)
+    rs = cross_prod(r, s)
     if rs == 0:
         return False
     else:
-        q_p = [q[0]-p[0], q[1]-p[1]]
+        q_p = [q[0] - p[0], q[1] - p[1]]
 
-        t = cross_prod(q_p, s)/rs
-        u = cross_prod(q_p, r)/rs
+        t = cross_prod(q_p, s) / rs
+        u = cross_prod(q_p, r) / rs
 
-        if 0<=t<=1 and 0<=u<=1:
-            point = [p[0]+t*r[0], p[1]+t*r[1]]
+        if 0 <= t <= 1 and 0 <= u <= 1:
+            point = [p[0] + t * r[0], p[1] + t * r[1]]
             return True
         else:
             return False
+
 
 def closest_point(l1, l2, point):
     """
@@ -108,14 +114,14 @@ def closest_point(l1, l2, point):
     """
     A1 = l2[1] - l1[1]
     B1 = l1[0] - l2[0]
-    C1 = (l2[1] - l1[1])*l1[0] + (l1[0] - l2[0])*l1[1]
+    C1 = (l2[1] - l1[1]) * l1[0] + (l1[0] - l2[0]) * l1[1]
     C2 = -B1 * point[0] + A1 * point[1]
-    det = A1*A1 + B1*B1
+    det = A1 * A1 + B1 * B1
     if det == 0:
         cx, cy = point
     else:
-        cx = (A1*C1 - B1*C2)/det
-        cy = (A1*C2 + B1*C1)/det
+        cx = (A1 * C1 - B1 * C2) / det
+        cy = (A1 * C2 + B1 * C1) / det
 
     return [cx, cy]
 
@@ -155,35 +161,36 @@ class OlympicsBase(object):
 
         self.step_cnt = 0
         self.done = False
-        self.max_step = 500
+        self.max_step = 1500
 
         self.energy_recover_rate = 200
         self.speed_cap = 500
 
-        #for debugg
+        # for debugg
         # self.obs_boundary_init = [[80,350], [180,350],[180,450],[80,450]]
         # self.obs_boundary = self.obs_boundary_init
         self.obs_boundary_init = list()
         self.obs_boundary = self.obs_boundary_init
 
         self.map = map
-        #self.check_valid_map()
+        # self.check_valid_map()
         self.generate_map(map)
         self.merge_map()
 
         self.view_setting = map["view"]
         self.map_num = None
-        #self.is_render = True
+        # self.is_render = True
         self.display_mode = False
 
         self.reset()
-        #self.check_overlap()
+        # self.check_overlap()
 
-    def check_valid_map(self):      #not using due to conflicting with arc center repitition...
+    def check_valid_map(self):  # not using due to conflicting with arc center repitition...
         object_init_list = [str(self.map['objects'][i].init_pos) for i in range(len(self.map['objects']))]
         temp = self.map['objects']
-        print('len1 = {}, len2 = {}'.format(len(object_init_list),len(set(object_init_list))))
-        assert len(object_init_list) == len(set(object_init_list)), print('ERROR: There is repitition in your designed map!')
+        print('len1 = {}, len2 = {}'.format(len(object_init_list), len(set(object_init_list))))
+        assert len(object_init_list) == len(set(object_init_list)), print(
+            'ERROR: There is repitition in your designed map!')
 
     def generate_map(self, map):
         for index, item in enumerate(map["agents"]):
@@ -197,9 +204,10 @@ class OlympicsBase(object):
             if item.type == 'agent':
                 visibility = item.visibility
                 boundary = self.get_obs_boundaray(position, r, visibility)
-            #print("boundary: ", boundary)
+                # print("boundary: ", boundary)
                 self.obs_boundary_init.append(boundary)
             # self.obs_boundary = self.obs_boundary_init
+
     def merge_map(self):
         point2wall = {}
         for idx, map_item in enumerate(self.map['objects']):
@@ -215,16 +223,16 @@ class OlympicsBase(object):
                     point2wall[l2] = [idx]
                 else:
                     point2wall[l2].append(idx)
-        self.point2wall=point2wall
+        self.point2wall = point2wall
 
     def get_obs_boundaray(self, init_position, r, visibility):
         # 默认初始视线水平
         boundary = list()
         x_init, y_init = init_position[0], init_position[1]
-        for unit in [[0,1], [1,1], [1,-1], [0,-1]]:
+        for unit in [[0, 1], [1, 1], [1, -1], [0, -1]]:
             x = x_init + r + visibility * unit[0]
             y = y_init - visibility * unit[1] / 2
-            boundary.append([x,y])
+            boundary.append([x, y])
         return boundary
 
     @staticmethod
@@ -234,9 +242,6 @@ class OlympicsBase(object):
 
     def set_seed(self, seed=None):
         pass
-
-
-
 
     def init_state(self):
         self.agent_pos = []
@@ -248,9 +253,9 @@ class OlympicsBase(object):
         for i in range(len(self.agent_list)):
             self.agent_pos.append(self.agent_init_pos[i])
             self.agent_previous_pos.append(self.agent_init_pos[i])
-            self.agent_v.append([0,0])
-            self.agent_accel.append([0,0])
-            init_obs = self.view_setting["init_obs"][i] if "init_obs" in self.view_setting else 0#random_theta
+            self.agent_v.append([0, 0])
+            self.agent_accel.append([0, 0])
+            init_obs = self.view_setting["init_obs"][i] if "init_obs" in self.view_setting else 0  # random_theta
             self.agent_theta.append([init_obs])
             self.agent_list[i].reset()
             self.agent_list[i].reset_color()
@@ -258,29 +263,28 @@ class OlympicsBase(object):
             self.agent_record.append([self.agent_init_pos[i]])
 
     def check_overlap(self):
-        #checking the intialisation of agents
+        # checking the intialisation of agents
         for agent_idx in range(self.agent_num):
             current_pos = self.agent_pos[agent_idx]
             r = self.agent_list[agent_idx].r
-            #check wall overlap
+            # check wall overlap
             for object_idx in range(len(self.map['objects'])):
                 if self.map['objects'][object_idx].type == 'wall':
-                    #distance from point to line
-                    l1,l2 = self.map['objects'][object_idx].init_pos
-                    distance = point2line(l1,l2,current_pos)
+                    # distance from point to line
+                    l1, l2 = self.map['objects'][object_idx].init_pos
+                    distance = point2line(l1, l2, current_pos)
                     if distance < r:
                         raise ValueError("The position of agent {} overlap with object {}. Please reinitialise...".
                                          format(agent_idx, object_idx))
-            for rest_idx in range(agent_idx+1, self.agent_num):
+            for rest_idx in range(agent_idx + 1, self.agent_num):
                 pos1 = self.agent_pos[agent_idx]
                 r1 = self.agent_list[agent_idx].r
                 pos2 = self.agent_pos[rest_idx]
                 r2 = self.agent_list[rest_idx].r
 
-                distance = (pos1[0]-pos2[0])**2 + (pos1[1] - pos2[1])**2
-                if distance < (r1+r2)**2:
+                distance = (pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2
+                if distance < (r1 + r2) ** 2:
                     raise ValueError("The position of agent {} overlap with agent {}.".format(agent_idx, rest_idx))
-
 
     def reset(self):
         self.set_seed()
@@ -289,7 +293,7 @@ class OlympicsBase(object):
         self.done = False
 
         self.viewer = Viewer(self.view_setting)
-        self.display_mode=False
+        self.display_mode = False
 
         return self.get_obs()
 
@@ -324,7 +328,6 @@ class OlympicsBase(object):
         #         sys.exit()
         # pygame.display.flip()
 
-
     def _circle_collision_response(self, coord1, coord2, v1, v2, m1, m2):
         """
         whether the input represents the new or the old need second thoughts
@@ -344,36 +347,35 @@ class OlympicsBase(object):
 
         n_vdiff = n_x * vdiff_x + n_y * vdiff_y
         nn = n_x * n_x + n_y * n_y
-        b = n_vdiff/nn
+        b = n_vdiff / nn
 
-        #object 1
-        u1_x = v1[0] - 2*(m2/(m1+m2)) * b * n_x
-        u1_y = v1[1] - 2*(m2/(m1+m2)) * b * n_y
+        # object 1
+        u1_x = v1[0] - 2 * (m2 / (m1 + m2)) * b * n_x
+        u1_y = v1[1] - 2 * (m2 / (m1 + m2)) * b * n_y
 
-        #object 2
-        u2_x = v2[0] + 2*(m1/(m1+m2)) * b * n_x
-        u2_y = v2[1] + 2*(m1/(m1+m2)) * b * n_y
+        # object 2
+        u2_x = v2[0] + 2 * (m1 / (m1 + m2)) * b * n_x
+        u2_y = v2[1] + 2 * (m1 / (m1 + m2)) * b * n_y
 
-        return [u1_x*self.restitution, u1_y*self.restitution], [u2_x*self.restitution, u2_y*self.restitution]
-
+        return [u1_x * self.restitution, u1_y * self.restitution], [u2_x * self.restitution, u2_y * self.restitution]
 
     def CCD_circle_collision(self, old_pos1, old_pos2, old_v1, old_v2, r1, r2, m1, m2, return_t):
         """
         this is the CCD circle collision for the new SetPhysics function
         """
 
-        relative_pos = [old_pos1[0]-old_pos2[0], old_pos1[1]-old_pos2[1]]
-        relative_v = [old_v1[0]-old_v2[0], old_v1[1]-old_v2[1]]
-        if (relative_v[0]**2+relative_v[1]**2) == 0:
+        relative_pos = [old_pos1[0] - old_pos2[0], old_pos1[1] - old_pos2[1]]
+        relative_v = [old_v1[0] - old_v2[0], old_v1[1] - old_v2[1]]
+        if (relative_v[0] ** 2 + relative_v[1] ** 2) == 0:
             return -1
 
-        pos_v = relative_pos[0]*relative_v[0] + relative_pos[1]*relative_v[1]
-        K = pos_v/(relative_v[0]**2+relative_v[1]**2)
-        l = (relative_pos[0]**2 + relative_pos[1]**2 - (r1+r2)**2)/(relative_v[0]**2+relative_v[1]**2)
+        pos_v = relative_pos[0] * relative_v[0] + relative_pos[1] * relative_v[1]
+        K = pos_v / (relative_v[0] ** 2 + relative_v[1] ** 2)
+        l = (relative_pos[0] ** 2 + relative_pos[1] ** 2 - (r1 + r2) ** 2) / (relative_v[0] ** 2 + relative_v[1] ** 2)
 
-        sqrt = (K**2 - l)
-        if sqrt <0 and return_t:
-            #print('CCD circle no solution')
+        sqrt = (K ** 2 - l)
+        if sqrt < 0 and return_t:
+            # print('CCD circle no solution')
             return -1
 
         sqrt = math.sqrt(sqrt)
@@ -384,19 +386,19 @@ class OlympicsBase(object):
         if return_t:
             return t
 
-        x1,y1 = old_pos1
-        x2,y2 = old_pos2
-        x1_col = x1 + old_v1[0]*t
-        y1_col = y1 + old_v1[1]*t
-        x2_col = x2 + old_v2[0]*t
-        y2_col = y2 + old_v2[1]*t
+        x1, y1 = old_pos1
+        x2, y2 = old_pos2
+        x1_col = x1 + old_v1[0] * t
+        y1_col = y1 + old_v1[1] * t
+        x2_col = x2 + old_v2[0] * t
+        y2_col = y2 + old_v2[1] * t
         pos_col1, pos_col2 = [x1_col, y1_col], [x2_col, y2_col]
 
-        #handle collision
-        v1_col, v2_col = self._circle_collision_response(pos_col1, pos_col2, old_v1, old_v2, m1, m2)      #the position and v at the collision time
+        # handle collision
+        v1_col, v2_col = self._circle_collision_response(pos_col1, pos_col2, old_v1, old_v2, m1,
+                                                         m2)  # the position and v at the collision time
 
         return pos_col1, v1_col, pos_col2, v2_col
-
 
     def bounceable_wall_collision_time(self, pos_container, v_container, remaining_t, ignore):
 
@@ -416,22 +418,23 @@ class OlympicsBase(object):
             for object_idx in range(len(self.map['objects'])):
                 object = self.map['objects'][object_idx]
 
-                if object.can_pass():     #cross
+                if object.can_pass():  # cross
                     continue
-                if object.ball_can_pass and self.agent_list[agent_idx].type == 'ball':      #for table hockey game
+                if object.ball_can_pass and self.agent_list[agent_idx].type == 'ball':  # for table hockey game
                     continue
 
-                #check the collision time and the collision target (wall and endpoint collision)
-                temp_t, temp_col_target = object.collision_time(pos = pos, v = v, radius = r, add_info = [agent_idx, object_idx, ignore])
+                # check the collision time and the collision target (wall and endpoint collision)
+                temp_t, temp_col_target = object.collision_time(pos=pos, v=v, radius=r,
+                                                                add_info=[agent_idx, object_idx, ignore])
 
-                if abs(temp_t) < 1e-10:   #the collision time computation has numerical error
+                if abs(temp_t) < 1e-10:  # the collision time computation has numerical error
                     temp_t = 0
-                #if object_idx == 2:
+                # if object_idx == 2:
                 #    print('agent {}: time on wall {}({}) is = {}, current_min_t = {}'.format(
                 #        agent_idx,object_idx,temp_col_target, temp_t, current_min_t))
-                    #print('ignore list = ', ignore)
+                # print('ignore list = ', ignore)
 
-                if 0<= temp_t < current_min_t:
+                if 0 <= temp_t < current_min_t:
                     if temp_col_target == 'wall' or temp_col_target == 'arc':
                         check = ([agent_idx, object_idx, temp_t] not in ignore)
                     elif temp_col_target == 'l1' or temp_col_target == 'l2':
@@ -451,7 +454,7 @@ class OlympicsBase(object):
 
         object = self.map['objects'][target_idx]
 
-        #t, v_col = object.collision_time(pos, v, r, compute_response = True, response_col_t = t,restitution = self.restitution)
+        # t, v_col = object.collision_time(pos, v, r, compute_response = True, response_col_t = t,restitution = self.restitution)
         col_pos, col_v = object.collision_response(pos, v, r, col_target, t, self.restitution)
 
         return col_pos, col_v
@@ -469,7 +472,7 @@ class OlympicsBase(object):
             new_y = old_pos[1] + old_v[1] * t
 
             pos_container[agent_idx] = [new_x, new_y]
-            v_container[agent_idx] = [old_v[0]*self.gamma, old_v[1]*self.gamma]
+            v_container[agent_idx] = [old_v[0] * self.gamma, old_v[1] * self.gamma]
 
         return pos_container, v_container
 
@@ -488,21 +491,20 @@ class OlympicsBase(object):
             vx_new = self.gamma * vx + accel_x * self.tau  # update v with acceleration
             vy_new = self.gamma * vy + accel_y * self.tau
 
-            #if vx_new ** 2 + vy_new ** 2 > self.max_speed_square:
+            # if vx_new ** 2 + vy_new ** 2 > self.max_speed_square:
             #    print('speed limited')
             #    v_new = [vx, vy]
-            #else:
+            # else:
             v_new = [vx_new, vy_new]
 
             pos_container[agent_idx] = pos_new
             v_container[agent_idx] = v_new
         return pos_container, v_container
 
+    def circle_collision_time(self, pos_container, v_container, remaining_t,
+                              ignore):  # ignore = [[current_idx, target_idx, collision time]]
 
-    def circle_collision_time(self, pos_container, v_container, remaining_t, ignore):   #ignore = [[current_idx, target_idx, collision time]]
-
-
-        #compute collision time between all circle
+        # compute collision time between all circle
         current_idx = None
         target_idx = None
         current_min_t = remaining_t
@@ -520,7 +522,7 @@ class OlympicsBase(object):
                 m2 = self.agent_list[rest_idx].mass
                 r2 = self.agent_list[rest_idx].r
 
-                #compute ccd collision time
+                # compute ccd collision time
                 collision_t = self.CCD_circle_collision(pos1, pos2, v1, v2, r1, r2, m1, m2, return_t=True)
 
                 if 0 <= collision_t < current_min_t and [agent_idx, rest_idx, collision_t] not in ignore:
@@ -544,8 +546,8 @@ class OlympicsBase(object):
             if action is None:
                 accel = [0, 0]
             else:
-                if self.agent_list[agent_idx].is_fatigue:       #if agent is out of energy, no driving force applies
-                    accel = [0,0]
+                if self.agent_list[agent_idx].is_fatigue:  # if agent is out of energy, no driving force applies
+                    accel = [0, 0]
                 else:
                     mass = self.agent_list[agent_idx].mass
 
@@ -564,14 +566,14 @@ class OlympicsBase(object):
                     accel_x = force * math.cos(theta_new / 180 * math.pi)
                     accel_y = force * math.sin(theta_new / 180 * math.pi)
                     accel = [accel_x, accel_y]
-                    #self.agent_accel[agent_idx] = accel  # update the agent acceleration
+                    # self.agent_accel[agent_idx] = accel  # update the agent acceleration
 
             a_container[agent_idx] = accel
         return a_container
 
     def _add_wall_ignore(self, collision_wall_target, current_agent_idx, target_wall_idx, ignore_wall, if_global=False):
 
-        if collision_wall_target == 'wall' or collision_wall_target ==  'arc':
+        if collision_wall_target == 'wall' or collision_wall_target == 'arc':
             if if_global:
                 self.global_wall_ignore.append([current_agent_idx, target_wall_idx, 0])
             else:
@@ -590,7 +592,6 @@ class OlympicsBase(object):
 
         if not if_global:
             return ignore_wall
-
 
     # def handle_wall(self, target_wall_idx, col_target, current_agent_idx, col_t,
     #                 pos_container, v_container, remaining_t, ignore_wall_list):
@@ -613,30 +614,31 @@ class OlympicsBase(object):
     def handle_wall(self, target_wall_idx, col_target, current_agent_idx, col_t,
                     pos_container, v_container, remaining_t, ignore_wall_list):
 
-        col_pos, col_v = self.wall_response(target_idx=target_wall_idx, col_target = col_target,
-                                            pos = pos_container[current_agent_idx], v = v_container[current_agent_idx],
-                                            r = self.agent_list[current_agent_idx], t = col_t)
+        col_pos, col_v = self.wall_response(target_idx=target_wall_idx, col_target=col_target,
+                                            pos=pos_container[current_agent_idx], v=v_container[current_agent_idx],
+                                            r=self.agent_list[current_agent_idx], t=col_t)
         pos_container[current_agent_idx] = col_pos
         v_container[current_agent_idx] = col_v
 
-        pos_container, v_container = self.update_other(pos_container=pos_container, v_container=  v_container, t=col_t,
+        pos_container, v_container = self.update_other(pos_container=pos_container, v_container=v_container, t=col_t,
                                                        already_updated=[current_agent_idx])
         remaining_t -= col_t
         if remaining_t <= 1e-14:
 
             if col_target == 'wall':
-                self._add_wall_ignore('wall', current_agent_idx, target_wall_idx, ignore_wall_list,if_global=True)
-                self._add_wall_ignore('l1', current_agent_idx, target_wall_idx, ignore_wall_list,if_global=True)
-                self._add_wall_ignore('l2', current_agent_idx, target_wall_idx, ignore_wall_list,if_global=True)
+                self._add_wall_ignore('wall', current_agent_idx, target_wall_idx, ignore_wall_list, if_global=True)
+                self._add_wall_ignore('l1', current_agent_idx, target_wall_idx, ignore_wall_list, if_global=True)
+                self._add_wall_ignore('l2', current_agent_idx, target_wall_idx, ignore_wall_list, if_global=True)
             elif col_target == 'l2' or col_target == 'l1':
                 self._add_wall_ignore(col_target, current_agent_idx, target_wall_idx,
-                                                         ignore_wall_list, if_global=True)
+                                      ignore_wall_list, if_global=True)
                 wall_endpoint = getattr(self.map['objects'][target_wall_idx], col_target)
                 connected_wall = self.point2wall[tuple(wall_endpoint)]
                 for idx in connected_wall:
                     self._add_wall_ignore('wall', current_agent_idx, idx, ignore_wall_list, if_global=True)
             else:
-                self._add_wall_ignore(col_target, current_agent_idx, target_wall_idx, None, if_global=True)         #collision of arc
+                self._add_wall_ignore(col_target, current_agent_idx, target_wall_idx, None,
+                                      if_global=True)  # collision of arc
 
         if col_target == 'wall':
             ignore_wall_list = self._add_wall_ignore('wall', current_agent_idx, target_wall_idx, ignore_wall_list)
@@ -652,7 +654,6 @@ class OlympicsBase(object):
         else:
             ignore_wall_list = self._add_wall_ignore(col_target, current_agent_idx, target_wall_idx, ignore_wall_list)
 
-
         return pos_container, v_container, remaining_t, ignore_wall_list
 
     def handle_circle(self, target_circle_idx, col_target, current_circle_idx, col_t,
@@ -663,7 +664,7 @@ class OlympicsBase(object):
                                       v_container[current_circle_idx], v_container[target_circle_idx],
                                       self.agent_list[current_circle_idx].r, self.agent_list[target_circle_idx].r,
                                       self.agent_list[current_circle_idx].mass, self.agent_list[target_circle_idx].mass,
-                                      return_t = False)
+                                      return_t=False)
 
         pos_container[current_circle_idx], pos_container[target_circle_idx] = pos_col1, pos_col2
         v_container[current_circle_idx], v_container[target_circle_idx] = v1_col, v2_col
@@ -677,14 +678,13 @@ class OlympicsBase(object):
 
         return pos_container, v_container, remaining_t, ignore_circle_list
 
+    def stepPhysics(self, actions_list, step=None):
 
-
-    def stepPhysics(self, actions_list, step = None):
-
-        assert len(actions_list) == self.agent_num, print("The number of action needs to match with the number of agents!")
+        assert len(actions_list) == self.agent_num, print(
+            "The number of action needs to match with the number of agents!")
         self.actions_list = actions_list
 
-        #current pos and v
+        # current pos and v
         temp_pos_container = [self.agent_pos[i] for i in range(self.agent_num)]
         temp_v_container = [self.agent_v[i] for i in range(self.agent_num)]
         temp_a_container = self.actions_to_accel(actions_list)
@@ -693,8 +693,7 @@ class OlympicsBase(object):
         remaining_t = self.tau
         ignore_wall = copy.copy(self.global_wall_ignore)
         ignore_circle = copy.copy(self.global_circle_ignore)
-        self.global_wall_ignore, self.global_circle_ignore = [], []   #only inherit once
-
+        self.global_wall_ignore, self.global_circle_ignore = [], []  # only inherit once
 
         while True:
             if self.print_log:
@@ -702,7 +701,8 @@ class OlympicsBase(object):
                 print('The pos = {}, the v = {}'.format(temp_pos_container, temp_v_container))
 
             earliest_wall_col_t, collision_wall_target, target_wall_idx, current_agent_idx = \
-                self.bounceable_wall_collision_time(temp_pos_container, temp_v_container, remaining_t, ignore_wall)    #collision detection with walls
+                self.bounceable_wall_collision_time(temp_pos_container, temp_v_container, remaining_t,
+                                                    ignore_wall)  # collision detection with walls
 
             earliest_circle_col_t, collision_circle_target, current_circle_idx, target_circle_idx = \
                 self.circle_collision_time(temp_pos_container, temp_v_container, remaining_t, ignore_circle)
@@ -712,7 +712,6 @@ class OlympicsBase(object):
                     earliest_wall_col_t, collision_wall_target, current_agent_idx, target_wall_idx))
                 print('Circle t = {}, collide = {}, agent_idx = {}, target_idx = {}'.format(
                     earliest_circle_col_t, collision_circle_target, current_circle_idx, target_circle_idx))
-
 
             if collision_wall_target is not None and collision_circle_target is None:
                 if self.print_log:
@@ -755,16 +754,17 @@ class OlympicsBase(object):
                 else:
                     raise NotImplementedError("collision error")
 
-            else:   #no collision within this time interval
+            else:  # no collision within this time interval
                 if self.print_log:
                     print('NO COLLISION!')
-                temp_pos_container, temp_v_container = self.update_all(temp_pos_container, temp_v_container, remaining_t, temp_a_container)
-                break   #when no collision occurs, break the collision detection loop
+                temp_pos_container, temp_v_container = self.update_all(temp_pos_container, temp_v_container,
+                                                                       remaining_t, temp_a_container)
+                break  # when no collision occurs, break the collision detection loop
 
         self.agent_pos = temp_pos_container
         self.agent_v = temp_v_container
 
-        #if self.is_render:
+        # if self.is_render:
         #    debug('Step: ' + str(step), x = 30)
         #    pos = [(float('%.1f' % i[0]), float('%.1f' % i[1])) for i in self.agent_pos]
         #    debug('Agent pos = ' + str(pos),x = 120)
@@ -785,12 +785,11 @@ class OlympicsBase(object):
                 if not object.can_pass():
                     continue
                 else:
-                    #print('object = ', object.type)
+                    # print('object = ', object.type)
                     if object.color == 'red' and object.check_cross(self.agent_pos[agent_idx], agent.r):
-
                         agent.color = 'red'
-                        agent.finished = True       #when agent has crossed the finished line
-                        agent.alive = False         #kill the agent when finishing the task
+                        agent.finished = True  # when agent has crossed the finished line
+                        agent.alive = False  # kill the agent when finishing the task
 
     def cross_detect(self, previous_pos, new_pos):
 
@@ -799,9 +798,10 @@ class OlympicsBase(object):
         for object_idx in range(len(self.map['objects'])):
             object = self.map['objects'][object_idx]
             if object.can_pass() and object.color == 'red':
-                l1,l2 = object.init_pos         #locate the pos of Final
+                l1, l2 = object.init_pos  # locate the pos of Final
                 finals.append(object)
                 l1l2.append([l1, l2])
+                final_pos = [(l1[0] + l2[0]) / 2, (l1[1] + l2[1]) / 2]
 
         for agent_idx in range(self.agent_num):
             agent = self.agent_list[agent_idx]
@@ -810,20 +810,18 @@ class OlympicsBase(object):
             for i, final in enumerate(finals):
                 l1, l2 = l1l2[i]
 
-                if line_intersect(line1 = [l1, l2], line2 = [agent_pre_pos, agent_new_pos]):
+                if line_intersect(line1=[l1, l2], line2=[agent_pre_pos, agent_new_pos]):
                     agent.color = 'red'
                     agent.finished = True
                     agent.alive = False
 
-                if (point2line(l1, l2, agent_new_pos) <= self.agent_list[agent_idx].r) and final.check_on_line(closest_point(l1,l2,agent_new_pos)):
-                    #if the center of circle to the line has distance less or equal to the radius, and the closest point is on the line, then cross the final
+                if (point2line(l1, l2, agent_new_pos) <= self.agent_list[agent_idx].r) and final.check_on_line(
+                        closest_point(l1, l2, agent_new_pos)):
+                    # if the center of circle to the line has distance less or equal to the radius, and the closest point is on the line, then cross the final
                     agent.color = 'red'
                     agent.finished = True
                     agent.alive = False
-
-
-
-
+        return np.array(final_pos)
 
     def get_obs(self):
         """
@@ -861,18 +859,18 @@ class OlympicsBase(object):
             :return:
             formula reference: https://blog.csdn.net/qq_45735851/article/details/114448767
             """
-            vec_OA, vec_OB = AB[0],AB[1]
-            vec_CA = [vec_OA[0]-vec_OC[0], vec_OA[1]-vec_OC[1]]
-            vec_CB = [vec_OB[0]-vec_OC[0], vec_OB[1]-vec_OC[1]]
-            vec_AB = [vec_OB[0]-vec_OA[0], vec_OB[1]-vec_OA[1]]
+            vec_OA, vec_OB = AB[0], AB[1]
+            vec_CA = [vec_OA[0] - vec_OC[0], vec_OA[1] - vec_OC[1]]
+            vec_CB = [vec_OB[0] - vec_OC[0], vec_OB[1] - vec_OC[1]]
+            vec_AB = [vec_OB[0] - vec_OA[0], vec_OB[1] - vec_OA[1]]
 
-            vec_AC = [-vec_OA[0]+vec_OC[0], -vec_OA[1]+vec_OC[1]]
-            vec_BC = [-vec_OB[0]+vec_OC[0], -vec_OB[1]+vec_OC[1]]
+            vec_AC = [-vec_OA[0] + vec_OC[0], -vec_OA[1] + vec_OC[1]]
+            vec_BC = [-vec_OB[0] + vec_OC[0], -vec_OB[1] + vec_OC[1]]
 
             if pixel:
-                if dot(vec_AB,vec_AC) < 0:
+                if dot(vec_AB, vec_AC) < 0:
                     d = distance_2points(vec_AC)
-                elif dot(vec_AB,vec_BC) > 0:
+                elif dot(vec_AB, vec_BC) > 0:
                     d = distance_2points(vec_BC)
                 else:
                     d = math.ceil(cross(vec_CA, vec_CB) / AB_length)
@@ -884,19 +882,19 @@ class OlympicsBase(object):
             """
             计算点乘，vec_1, vec_2都为向量
             """
-            return vec_1[0]*vec_2[0] + vec_1[1]*vec_2[1]
+            return vec_1[0] * vec_2[0] + vec_1[1] * vec_2[1]
 
         def cross(vec_1, vec_2):
             """
             计算叉积，vec_1, vec_2都为向量
             """
-            return vec_1[0]*vec_2[1]-vec_1[1]*vec_2[0]
+            return vec_1[0] * vec_2[1] - vec_1[1] * vec_2[0]
 
         def distance_2points(vec):
             """
             计算两个点直接距离，vec为向量
             """
-            return math.sqrt(vec[0]**2 + vec[1]**2)
+            return math.sqrt(vec[0] ** 2 + vec[1] ** 2)
 
         def check_radian(start_radian, end_radian, angle):
 
@@ -930,7 +928,12 @@ class OlympicsBase(object):
         # ===========================================================================
 
         obs_list = list()
-
+        current_targets = list()
+        arcs = []
+        walls = []
+        crosses = []
+        terminals = []
+        items_flag = True
         for agent_idx, agent in enumerate(self.agent_list):
             time_s = time.time()
             theta_copy = self.agent_theta[agent_idx][0]
@@ -963,8 +966,8 @@ class OlympicsBase(object):
                 # print("check x_new: ", x_new, y_new)
                 # x_new_ = x_new + agent_x
                 # y_new_ = -y_new + agent_y
-                x_new_ =  x_new - vec_oo_[0]
-                y_new_ =  y_new - vec_oo_[1]
+                x_new_ = x_new - vec_oo_[0]
+                y_new_ = y_new - vec_oo_[1]
                 agent_current_boundary.append([x_new_, -y_new_])
             self.obs_boundary.append(agent_current_boundary)
 
@@ -986,9 +989,74 @@ class OlympicsBase(object):
                     vec_od = (vec_o_d[0] + vec_oo_[0], vec_o_d[1] + vec_oo_[1])
                     item.cur_pos.append([vec_od[0], vec_od[1]])
 
+            def legal_radian_check(radian):
+                if radian > math.pi:
+                    radian = - (2 * math.pi - radian)
+                elif radian <= - math.pi:
+                    radian = 2 * math.pi + radian
+                return radian
+
+            def line_intersect_circle(p, lsp, esp):
+                # p is the circle parameter, lsp and lep is the two end of the line
+                # https://blog.csdn.net/wyll19980812/article/details/124769513
+                x0, y0, r0 = p
+                x1, y1 = lsp
+                x2, y2 = esp
+                if r0 == 0:
+                    return [[x1, y1]]
+                if x1 == x2:
+                    if abs(r0) >= abs(x1 - x0):
+                        p1 = x1, round(y0 - math.sqrt(r0 ** 2 - (x1 - x0) ** 2), 5)
+                        p2 = x1, round(y0 + math.sqrt(r0 ** 2 - (x1 - x0) ** 2), 5)
+                        inp = [p1, p2]
+                        # select the points lie on the line segment
+                        inp = [p for p in inp if p[0] >= min(x1, x2) and p[0] <= max(x1, x2)]
+                    else:
+                        inp = []
+                else:
+                    k = (y1 - y2) / (x1 - x2)
+                    b0 = y1 - k * x1
+                    a = k ** 2 + 1
+                    b = 2 * k * (b0 - y0) - 2 * x0
+                    c = (b0 - y0) ** 2 + x0 ** 2 - r0 ** 2
+                    delta = b ** 2 - 4 * a * c
+                    if delta >= 0:
+                        p1x = round((-b - math.sqrt(delta)) / (2 * a), 5)
+                        p2x = round((-b + math.sqrt(delta)) / (2 * a), 5)
+                        p1y = round(k * p1x + b0, 5)
+                        p2y = round(k * p2x + b0, 5)
+                        inp = [[p1x, p1y], [p2x, p2y]]
+                        # select the points lie on the line segment
+                        inp = [p for p in inp if p[0] >= min(x1, x2) and p[0] <= max(x1, x2)]
+                    else:
+                        inp = []
+                res = True if inp != [] else False
+                return [res, inp]
+
+            def check_block(pos___):
+                for item in self.map['objects']:
+                    if item.type == 'wall':
+                        if line_intersect(line1=[pos___, [agent_x, agent_y]], line2=item.init_pos):
+                            return True
+                    if item.type == 'arc':
+                        res = line_intersect_circle(item.center + [item.R], pos___, [agent_x, agent_y])
+                        seg_, inp = res
+                        if seg_:
+                            if len(inp) == 2:
+                                if check_radian(item.start_radian, item.end_radian,
+                                                math.atan2(-inp[0][1] + item.center[1],
+                                                           inp[0][0] - item.center[0])) or check_radian(
+                                        item.start_radian, item.end_radian,
+                                        math.atan2(-inp[1][1] + item.center[1], inp[1][0] - item.center[0])):
+                                    return True
+                            else:
+                                if check_radian(item.start_radian, item.end_radian,
+                                                math.atan2(-inp[0][1] + item.center[1], inp[0][0] - item.center[0])):
+                                    return True
+
             # 计算视野中心点到各个边的距离
             # 视野中心点
-            vec_oc = (agent.r+visibility/2, 0)
+            vec_oc = (agent.r + visibility / 2, 0)
             c_x = vec_oc[0]
             c_y = vec_oc[1]
             c_x_, c_y_ = rotate2(c_x, c_y, theta)
@@ -997,22 +1065,78 @@ class OlympicsBase(object):
             map_objects = list()
             map_deduced = dict()
             map_deduced["objects"] = list()
+            cross_ = []
+            target_0 = [10000, None, None, None]
+            target_1 = [20000, None, None, None]
+            terminal_ = [30000, None, None, None]
             for c in self.map["objects"]:
                 if (c.type == "wall") or (c.type == "cross"):
                     distance = abs(get_distance(c.cur_pos, vec_oc_, c.length, pixel=False))
-                    if distance <= visibility/2 * 1.415:
-                    # if distance <= 50 * 1.415:
+                    if distance <= visibility / 2 * 1.415:
+                        # if distance <= 50 * 1.415:
                         map_deduced["objects"].append(c)
                         map_objects.append(c)
+                    if c.type == 'wall':
+                        if items_flag:
+                            walls.append(c)
+                    if c.color == 'red':
+                        if items_flag:
+                            terminals.append(c)
+                        center = [(c.init_pos[0][0] + c.init_pos[1][0]) / 2, (c.init_pos[0][1] + c.init_pos[1][1]) / 2]
+                        if not check_block(center):
+                            dist = distance_2points([agent_x - center[0], agent_y - center[1]])
+                            terminal_[0] = dist
+                            terminal_[2] = c
+                            terminal_[1] = np.array(center)
+                    elif c.type == 'cross':
+                        if items_flag:
+                            crosses.append(c)
+                        cross_.append(c)
+                        if len(cross_) == 2:
+                            if cross_[-1].init_pos[0] == cross_[-2].init_pos[0]:
+                                end_pos = cross_[-1].init_pos[0]
+                                start_pos0 = cross_[-1].init_pos[1]
+                                start_pos1 = cross_[-2].init_pos[1]
+                            elif cross_[-1].init_pos[1] == cross_[-2].init_pos[1]:
+                                end_pos = cross_[-1].init_pos[1]
+                                start_pos0 = cross_[-1].init_pos[0]
+                                start_pos1 = cross_[-2].init_pos[0]
+                            elif cross_[-1].init_pos[1] == cross_[-2].init_pos[0]:
+                                end_pos = cross_[-1].init_pos[1]
+                                start_pos0 = cross_[-1].init_pos[0]
+                                start_pos1 = cross_[-2].init_pos[1]
+                            elif cross_[-1].init_pos[0] == cross_[-2].init_pos[1]:
+                                end_pos = cross_[-1].init_pos[0]
+                                start_pos0 = cross_[-1].init_pos[1]
+                                start_pos1 = cross_[-2].init_pos[0]
+                            else:
+                                print('err')
+                                print('map: ', self.map_num)
+                            cross_.clear()
+                            start_pos = [(start_pos0[0] + start_pos1[0]) / 2, (start_pos0[1] + start_pos1[1]) / 2]
+                            if not check_block(start_pos):
+                                dist = distance_2points([agent_x - end_pos[0], agent_y - end_pos[1]])
+                                if dist < target_0[0]:
+                                    target_0[0] = dist
+                                    target_0[2] = c
+                                    target_0[1] = np.array(end_pos)
+                                    target_0[3] = np.array(start_pos)
+                                elif target_1[0] > dist >= target_0[0]:
+                                    target_1[0] = dist
+                                    target_1[2] = c
+                                    target_1[1] = np.array(end_pos)
+                                    target_1[3] = np.array(start_pos)
                 elif c.type == "arc":
-                    distance = distance_2points([c.cur_pos[0][0]-vec_oc_[0],c.cur_pos[0][1]-vec_oc_[1]])
-                    if distance <= visibility/2 * 1.415 + c.R:
+                    if items_flag:
+                        arcs.append(c)
+                    distance = distance_2points([c.cur_pos[0][0] - vec_oc_[0], c.cur_pos[0][1] - vec_oc_[1]])
+                    if distance <= visibility / 2 * 1.415 + c.R:
                         map_deduced["objects"].append(c)
                         map_objects.append(c)
                 else:
                     raise ValueError("No such object type- {}. Please check scenario.json".
                                      format(c.type))
-
+            current_targets.append([target_0, target_1, terminal_])
             map_deduced["agents"] = list()
 
             # 当前agent自己
@@ -1024,18 +1148,17 @@ class OlympicsBase(object):
                 else:
                     vec_o_b = (self.agent_pos[a_i][0], -self.agent_pos[a_i][1])
                     vec_oo_ = (-agent_x, agent_y)
-                    vec_ob = (vec_o_b[0]+vec_oo_[0], vec_o_b[1]+vec_oo_[1])
-                    vec_bc_ = (vec_oc_[0]-vec_ob[0], vec_oc_[1]-vec_ob[1])
+                    vec_ob = (vec_o_b[0] + vec_oo_[0], vec_o_b[1] + vec_oo_[1])
+                    vec_bc_ = (vec_oc_[0] - vec_ob[0], vec_oc_[1] - vec_ob[1])
                     agent_self.to_another_agent = vec_ob
-                    distance = math.sqrt(vec_bc_[0]**2 + vec_bc_[1]**2)
-                    threshold = self.agent_list[agent_idx].visibility * 1.415 / 2 + a_other.r # 默认视线为正方形
+                    distance = math.sqrt(vec_bc_[0] ** 2 + vec_bc_[1] ** 2)
+                    threshold = self.agent_list[agent_idx].visibility * 1.415 / 2 + a_other.r  # 默认视线为正方形
                     if distance <= threshold:
-                        map_deduced["agents"].append(a_i) # todo
+                        map_deduced["agents"].append(a_i)  # todo
                         map_objects.append(a_other)
 
-
             # obs_map = np.zeros(( obs_weight , obs_height))
-            obs_map = np.zeros((obs_size,obs_size))
+            obs_map = np.zeros((obs_size, obs_size))
             for obj in map_deduced["objects"]:
                 if (obj.type == "wall") or (obj.type == "cross"):
                     points_pos = obj.cur_pos
@@ -1059,14 +1182,14 @@ class OlympicsBase(object):
                 vec_ob = agent_self.to_another_agent  # todo: 现在只有两个agent
                 theta_obj = - theta
                 x, y = rotate2(vec_ob[0], vec_ob[1], theta_obj)
-                agent_self.to_another_agent_rotated = (x,y)
+                agent_self.to_another_agent_rotated = (x, y)
 
             time_stamp = time.time()
             for component in map_objects:
                 for i in range(obs_size):
-                    x = agent.r + visibility - v_clear*i - v_clear / 2
+                    x = agent.r + visibility - v_clear * i - v_clear / 2
                     for j in range(obs_size):
-                        y = visibility/2 - v_clear*j - v_clear /2
+                        y = visibility / 2 - v_clear * j - v_clear / 2
                         point = (x, y)
                         if obs_map[i][j] > 0:
                             continue
@@ -1074,92 +1197,97 @@ class OlympicsBase(object):
                             if (component.type == "wall") or (component.type == "cross"):
                                 distance = abs(get_distance(component.cur_pos_rotated, point, component.length,
                                                             pixel=True))
-                                if distance <= v_clear :  # 距离小于等于1个像素点长度
+                                if distance <= v_clear:  # 距离小于等于1个像素点长度
                                     obs_map[i][j] = COLOR_TO_IDX[component.color]
                             elif component.type == "agent":
-                                vec_bc_ = (x-agent_self.to_another_agent_rotated[0], y-agent_self.to_another_agent_rotated[1])
+                                vec_bc_ = (
+                                    x - agent_self.to_another_agent_rotated[0],
+                                    y - agent_self.to_another_agent_rotated[1])
                                 distance = math.sqrt(vec_bc_[0] ** 2 + vec_bc_[1] ** 2)
                                 if distance <= component.r:
                                     obs_map[i][j] = COLOR_TO_IDX[component.color]
                             elif component.type == "arc":
                                 radius = component.R
-                                x_2center, y_2center = x-component.cur_pos_rotated[0][0], y-component.cur_pos_rotated[0][1]
+                                x_2center, y_2center = x - component.cur_pos_rotated[0][0], y - \
+                                                       component.cur_pos_rotated[0][1]
                                 theta_pixel = theta
-                                pos_x_2center, pos_y_2center = rotate2(x_2center,y_2center,theta_pixel)
+                                pos_x_2center, pos_y_2center = rotate2(x_2center, y_2center, theta_pixel)
                                 angle = math.atan2(pos_y_2center, pos_x_2center)
                                 start_radian, end_radian = component.start_radian, component.end_radian
-                                if check_radian(start_radian,end_radian,angle):
-                                # if (angle >= start_radian) and (angle <= end_radian):
+                                if check_radian(start_radian, end_radian, angle):
+                                    # if (angle >= start_radian) and (angle <= end_radian):
                                     vec = [x - component.cur_pos_rotated[0][0], y - component.cur_pos_rotated[0][1]]
                                     distance = distance_2points(vec)
                                     if (distance <= radius + v_clear) and (distance >= radius - v_clear):
                                         obs_map[i][j] = COLOR_TO_IDX[component.color]
-
             obs_list.append(obs_map)
             if self.print_log2:
                 print('agent {} get obs duration {}'.format(agent_idx, time.time() - time_stamp))
+            items_flag = False
         self.obs_list = obs_list
+        # print('arcs: ', len(arcs))
+        # print('walls: ', len(walls))
+        # print('crosses: ', len(crosses))
+        # print('total: ', len(self.map['objects']))
+        # agents: r/700, energy / 1000, agnet_v / 100,
 
-
-        return obs_list
+        return obs_list, current_targets, arcs, walls, crosses, terminals
 
     def change_inner_state(self):
-
+        energy_left = []
         for agent_idx in range(self.agent_num):
-            if self.agent_list[agent_idx].energy < 0:       #once fatigue, the agent died and lose control
+            if self.agent_list[agent_idx].energy < 0:  # once fatigue, the agent died and lose control
                 remaining_energy = -1
             else:
 
-                #previous_pos = self.agent_previous_pos[agent_idx]
-                #current_pos = self.agent_pos[agent_idx]
+                # previous_pos = self.agent_previous_pos[agent_idx]
+                # current_pos = self.agent_pos[agent_idx]
 
-                #moved = math.sqrt((previous_pos[0] - current_pos[0])**2 + (previous_pos[1] - current_pos[1])**2)
+                # moved = math.sqrt((previous_pos[0] - current_pos[0])**2 + (previous_pos[1] - current_pos[1])**2)
 
-
-                #force_idx = 0 if self.actions_list[agent_idx] is None else self.actions_list[agent_idx][0]
-                force = self.agent_list[agent_idx].mass * math.sqrt(self.agent_accel[agent_idx][0]**2 +
-                                                                    self.agent_accel[agent_idx][1]**2)
-                v = math.sqrt(self.agent_v[agent_idx][0]**2 + self.agent_v[agent_idx][1]**2)
-                consume_rate = force*v/50
+                # force_idx = 0 if self.actions_list[agent_idx] is None else self.actions_list[agent_idx][0]
+                force = self.agent_list[agent_idx].mass * math.sqrt(self.agent_accel[agent_idx][0] ** 2 +
+                                                                    self.agent_accel[agent_idx][1] ** 2)
+                v = math.sqrt(self.agent_v[agent_idx][0] ** 2 + self.agent_v[agent_idx][1] ** 2)
+                consume_rate = force * v / 50
                 consume_rate -= self.energy_recover_rate
 
-                remaining_energy = self.agent_list[agent_idx].energy - consume_rate*self.tau
-                #force = force_idx
+                remaining_energy = self.agent_list[agent_idx].energy - consume_rate * self.tau
+                # force = force_idx
 
-                #energy_used = force * moved/1000          #F*s
+                # energy_used = force * moved/1000          #F*s
 
-                #remaining_energy = self.agent_list[agent_idx].energy - energy_used + self.energy_recover_rate*self.tau
-                if remaining_energy <0:
+                # remaining_energy = self.agent_list[agent_idx].energy - energy_used + self.energy_recover_rate*self.tau
+                if remaining_energy < 0:
                     remaining_energy = -1
                 elif remaining_energy > self.agent_list[agent_idx].energy_cap:
                     remaining_energy = self.agent_list[agent_idx].energy_cap
                 else:
                     pass
 
-            #print('remaining energy = ', remaining_energy)
+            # print('remaining energy = ', remaining_energy)
             self.agent_list[agent_idx].energy = remaining_energy
-            #self.agent_list[agent_idx].energy -= (energy_used - self.energy_recover_rate*self.tau)
+            # self.agent_list[agent_idx].energy -= (energy_used - self.energy_recover_rate*self.tau)
+            energy_left.append(remaining_energy)
 
     def speed_limit(self):
-
+        abs_speed = []
         for agent_idx in range(self.agent_num):
             current_v = self.agent_v[agent_idx]
-            current_speed = math.sqrt(current_v[0]**2 + current_v[1]**2)
-
+            current_speed = math.sqrt(current_v[0] ** 2 + current_v[1] ** 2)
+            abs_speed.append(current_speed)
             if current_speed > self.speed_cap:
-                factor = self.speed_cap/current_speed
+                factor = self.speed_cap / current_speed
                 cap_v = [current_v[0] * factor, current_v[1] * factor]
                 self.agent_v[agent_idx] = cap_v
+                # print('OVER-SPEED!!!')
+        return np.array(abs_speed)
 
-                #print('OVER-SPEED!!!')
-
-
-
-    def render(self, info=None):
+    def render(self, info=None, ctrl_agent=None):
 
         if not self.display_mode:
             self.viewer.set_mode()
-            self.display_mode=True
+            self.display_mode = True
 
         self.viewer.draw_background()
         # 先画map; ball在map之上
@@ -1171,17 +1299,27 @@ class OlympicsBase(object):
             self.get_trajectory()
             self.viewer.draw_trajectory(self.agent_record, self.agent_list)
         self.viewer.draw_direction(self.agent_pos, self.agent_accel)
-        #self.viewer.draw_map()
+        # self.viewer.draw_map()
 
         if self.draw_obs:
             self.viewer.draw_obs(self.obs_boundary, self.agent_list)
             self.viewer.draw_view(self.obs_list, self.agent_list)
 
-        #draw energy bar
-        #debug('agent remaining energy = {}'.format([i.energy for i in self.agent_list]), x=100)
+        # draw energy bar
+        # debug('agent remaining energy = {}'.format([i.energy for i in self.agent_list]), x=100)
         self.viewer.draw_energy_bar(self.agent_list)
-        debug('Agent 0', x=570, y=110)
-        debug('Agent 1', x=640, y=110)
+        if ctrl_agent is None:
+            debug('Agent 0', x=570, y=110)
+            debug('Agent 1', x=640, y=110)
+        elif ctrl_agent == 0:
+            debug('Ctrl 0', x=570, y=110)
+            debug('Agent 1', x=640, y=110)
+        elif ctrl_agent == 1:
+            debug('Agent 0', x=570, y=110)
+            debug('Ctrl 1', x=640, y=110)
+        else:
+            debug('Ctrl 0', x=570, y=110)
+            debug('Ctrl 1', x=640, y=110)
         if self.map_num is not None:
             debug('Map {}'.format(self.map_num), x=100)
 
@@ -1190,13 +1328,12 @@ class OlympicsBase(object):
         if info is not None:
             debug(info, x=100)
 
-
         for event in pygame.event.get():
             # 如果单击关闭窗口，则退出
             if event.type == pygame.QUIT:
                 sys.exit()
         pygame.display.flip()
-        #self.viewer.background.fill((255, 255, 255))
+        # self.viewer.background.fill((255, 255, 255))
 
     def get_trajectory(self):
 
@@ -1204,5 +1341,5 @@ class OlympicsBase(object):
             pos_r = copy.deepcopy(self.agent_pos[i])
             self.agent_record[i].append(pos_r)
 
-        #pos_r = copy.deepcopy(self.pos)
-        #self.record.append(pos_r)
+        # pos_r = copy.deepcopy(self.pos)
+        # self.record.append(pos_r)
