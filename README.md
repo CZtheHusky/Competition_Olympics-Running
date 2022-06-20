@@ -9,7 +9,7 @@ https://www.bilibili.com/video/BV1rF411G72L
 
 ### How to train your own husky
 
-Under current multithread settings, you need one GPU with 80GB of memory or two GPUs with 40GB of memory.
+Current multithread settings are tested with two A100 GPUs with 40GB of memory each.
 
 > cd rl_trainer_rnn_mt
 > 
