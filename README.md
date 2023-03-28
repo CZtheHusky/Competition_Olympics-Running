@@ -19,7 +19,7 @@ Current multithread settings are tested with two A100 GPUs with 40GB of memory e
 > 
 > python main.py --mix_maps --reward_shaping --check_point --actor_path '' --critic_path '' --ep ep_num --tc train_count
 
-### Self-play!
+### Self-play
 Don't forget to prepare 17 opponents in './self_play_opponents' first. Feel free to choose them from your stored models.
 
 > cd rl_trainer_rnn_mt
